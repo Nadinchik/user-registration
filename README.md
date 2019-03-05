@@ -1,4 +1,4 @@
-# user-registration
+# Rehan Saeed
 registration form
 
 When you cloned this repo then you have to do npm install 
