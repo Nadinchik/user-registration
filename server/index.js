@@ -1,58 +1,52 @@
 const express = require('express');
 const app = express();
-const jwt = require('jsonwebtoken')
-
-
 var bodyParser = require("body-parser");
-app.use(bodyParser.json({ limit: "50mb" }));
+const Sequelize = require('sequelize');
+
+
+app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 
 app.use(express.static(require("path").resolve(__dirname, "../dist")));
 
 
-app.get("/test",(req,res)=>{
-	res.json({message:'testesd'})
-})
+/**
+ * please first change the username and password and also db name in the sequelize configuration according to your env
+ */
 
+const sequelize = new Sequelize('user', 'root', '', {
+  host: 'localhost',
+  dialect: 'mysql',
 
-const users = [
-	{
-		id:1,
-		name:'rehan',
-		email:'rehan@gmail.com',
-		password:'1234'
-	},
-	{
-		id:2,
-		name:'Ragnaar',
-		email:'rehan@gmail.com',
-		password:'1234'
-	},
-	{
-		id:3,
-		name:'Lothbrok',
-		email:'rehan@gmail.com',
-		password:'1234'
-	},
-]
-
-
-app.post('/login',(req,res)=>{
-	const user = users.filter(item=>item.email === req.body.email && item.password === req.body.password)[0]
-	if(!user){
-		res.status(400).json({message:'invalid credentials'})
-	}else{
-		const token = jwt.sign({name:user.name},'my-secret');
-		res.status(200).json({token,name:user.name})
-	}
-})
-
-app.post('/register',(req,res)=>{
-	users.push(req.body)
-	res.json({message:'success'})
+  pool: {
+    max: 5,
+    min: 0,
+    acquire: 30000,
+    idle: 10000
+  },
+  operatorsAliases: false,
 });
 
+// Connection authentication
 
+sequelize
+  .authenticate()
+  .then(() => {
+    console.log('Connection has been established successfully.');
+  })
+  .catch(err => {
+    console.error('Unable to connect to the database:', err);
+  })
+
+
+// calling the routes
+  app.use('/api',require('./routes/user'))
+
+
+
+  /**
+   * fallback handler
+   */
 app.get('*',(req,res)=>{
 	res.sendFile(require('path').resolve(__dirname,'../dist/index.html'))
 })
